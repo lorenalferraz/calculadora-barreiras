@@ -1,10 +1,10 @@
 export default {
-  _widgetLabel: 'Filtrar e Gerar Relatório',
+  _widgetLabel: 'Filtrar Barreiras e Gerar Relatório',
   addLayer: 'Adicionar Camada',
   featureServiceUrl: 'URL do Feature Service',
   instructions:
-    'Digite o nº IDEA',
-  searchIdea: 'Pesquisar por número (idea)',
+    'Digite o código do alerta',
+  searchIdea: 'Pesquisar por código do alerta',
   filterAndZoom: 'Filtrar',
   generateReport: 'Gerar Relatório',
   clearFilter: 'Limpar Filtro',
