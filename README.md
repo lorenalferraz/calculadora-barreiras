@@ -82,14 +82,35 @@ layer.queryFeatures(query).then((results) => {
    - Procure por "Filtrar e Baixar" na lista de widgets
    - Arraste para a experiência
 
-### Opção 2: Deploy via Repositório Git
+### Opção 2: Deploy via GitHub Pages (Recomendado)
+
+1. **Habilite o GitHub Pages no repositório:**
+   - Acesse: https://github.com/lorenalferraz/calculadora-barreiras/settings/pages
+   - Selecione branch `main` e pasta `/ (root)`
+   - Aguarde alguns minutos até o GitHub Pages ficar ativo
+
+2. **Obtenha a URL do manifest:**
+   ```
+   https://lorenalferraz.github.io/calculadora-barreiras/manifest.json
+   ```
+
+3. **Configure no Portal do Experience Builder:**
+   - Acesse como **Administrador**
+   - Vá em **Widgets** > **Custom Widgets**
+   - Clique em **Register Widget from URL** ou **Add Widget from URL**
+   - Cole a URL do manifest acima
+   - O Portal irá baixar e validar o widget automaticamente
+
+   📖 **Guia completo:** Veja `GITHUB_PAGES.md` para instruções detalhadas
+
+### Opção 3: Deploy via Repositório Git
 
 1. **Configure o repositório no Portal:**
    - Acesse o Portal do Experience Builder como Administrador
    - Navegue até **Widgets** > **Custom Widgets**
    - Clique em **Add from Git** (se disponível)
-   - Informe a URL do repositório Git
-   - Selecione o branch (geralmente `main`)
+   - Informe a URL: `https://github.com/lorenalferraz/calculadora-barreiras.git`
+   - Selecione o branch `main`
    - O Portal irá baixar e compilar automaticamente
 
 2. **Nota sobre repositórios Git:**

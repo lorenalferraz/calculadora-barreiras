@@ -9,7 +9,20 @@ Isso acontece porque:
 - O Portal precisa acessar **todos os arquivos** do widget (dist/, src/, config.json, icon.svg, etc.)
 - O Portal precisa clonar o repositório completo para ter acesso a toda a estrutura
 
-## ✅ Solução: Use a URL do Repositório Git
+## ✅ Soluções Disponíveis
+
+### Solução 1: GitHub Pages (Recomendado)
+
+Use o GitHub Pages para servir os arquivos do widget. Isso permite usar uma URL direta do manifest:
+
+**URL do Manifest (após habilitar GitHub Pages):**
+```
+https://lorenalferraz.github.io/calculadora-barreiras/manifest.json
+```
+
+📖 **Veja o guia completo:** `GITHUB_PAGES.md`
+
+### Solução 2: URL do Repositório Git
 
 ### Passo a Passo para Deploy via Repositório Git
 
