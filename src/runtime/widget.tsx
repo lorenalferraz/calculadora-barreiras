@@ -60,10 +60,10 @@ IState
   readonly FEATURE_SERVICE_URL = 'https://meioambiente.sistemas.mpba.mp.br/server/rest/services/Hosted/Barreiras_classificado/FeatureServer'
   
   // URL da ferramenta de geoprocessamento (Barreiras)
-  readonly GP_SERVICE_URL = 'https://meioambiente.sistemas.mpba.mp.br/server/rest/services/testeoutput/processaralerta_barreiras/GPServer'
+  readonly GP_SERVICE_URL = 'https://meioambiente.sistemas.mpba.mp.br/server/rest/services/testeoutput/processaralerta_barreiras/GPServer/relatorio_analise_barreiras'
   
   // Nome da task específica dentro da GP
-  readonly GP_TASK_NAME = 'Processamento de alertas'
+  readonly GP_TASK_NAME = 'relatorio_analise_barreiras'
 
   // Função chamada quando o valor da pesquisa muda
   handleIdeaSearchInputChange = (event) => {
@@ -556,8 +556,9 @@ IState
       
       // Primeiro, vamos obter informações sobre a task específica para descobrir os parâmetros
       console.log('Obtendo informações da task específica...')
-      const taskNameEncoded = encodeURIComponent(this.GP_TASK_NAME)
-      const infoUrl = addTokenToUrl(`${this.GP_SERVICE_URL}/${taskNameEncoded}?f=json`)
+      // A URL base já aponta para a task específica, então não precisa adicionar o nome da task novamente
+      // const taskNameEncoded = encodeURIComponent(this.GP_TASK_NAME)
+      const infoUrl = addTokenToUrl(`${this.GP_SERVICE_URL}?f=json`)
       console.log('URL de informações da task:', infoUrl)
       
       // Tenta obter informações da task específica primeiro
@@ -753,14 +754,17 @@ IState
       console.log('Tentando primeiro com task específica:', this.GP_TASK_NAME)
       console.log('Parâmetro que será enviado:', paramName)
       console.log('Valor que será enviado:', alertCode)
+      console.log('GP_SERVICE_URL:', this.GP_SERVICE_URL)
       
+      // Primeiro tenta com o endpoint direto (já que a URL base já aponta para a task específica)
       // Se for assíncrona, usa submitJob; caso contrário, usa execute
       if (isAsync) {
-        executeUrl = `${this.GP_SERVICE_URL}/${taskNameEncoded}/submitJob`
-        console.log('Usando endpoint /submitJob (tarefa assíncrona):', executeUrl)
+        // Tenta primeiro sem o nome da task (URL base já aponta para relatorio_analise_barreiras)
+        executeUrl = `${this.GP_SERVICE_URL}/submitJob`
+        console.log('Usando endpoint direto /submitJob (tarefa assíncrona):', executeUrl)
       } else {
-        executeUrl = `${this.GP_SERVICE_URL}/${taskNameEncoded}/execute`
-        console.log('Usando endpoint /execute (tarefa síncrona):', executeUrl)
+        executeUrl = `${this.GP_SERVICE_URL}/execute`
+        console.log('Usando endpoint direto /execute (tarefa síncrona):', executeUrl)
       }
       
       let executeResponse = await makeExecuteRequest(executeUrl)
@@ -796,7 +800,13 @@ IState
       let result
       try {
         result = await executeResponse.json()
+        console.log('=== RESPOSTA COMPLETA DO SUBMITJOB ===')
+        console.log('Status HTTP:', executeResponse.status, executeResponse.statusText)
         console.log('Resposta do execute (JSON):', JSON.stringify(result, null, 2))
+        console.log('result.jobId:', result.jobId)
+        console.log('result.jobID:', result.jobID) // Alguns serviços usam jobID
+        console.log('result.JobId:', result.JobId) // Outras variações possíveis
+        console.log('Todas as chaves do result:', Object.keys(result || {}))
       } catch (jsonError) {
         // Se não conseguir ler como JSON, lê como texto
         const textResponse = await executeResponse.text()
@@ -849,10 +859,16 @@ IState
       
       // Verifica se a resposta contém um jobId (tarefa assíncrona)
       // Para tarefas assíncronas, submitJob sempre retorna jobId
-      if (result.jobId || isAsync) {
-        const jobId = result.jobId
+      // Alguns serviços podem usar variações: jobId, jobID, JobId
+      const jobId = result.jobId || result.jobID || result.JobId
+      
+      if (isAsync || result.jobId || result.jobID || result.JobId) {
         if (!jobId) {
-          throw new Error('Tarefa assíncrona mas não recebeu jobId na resposta')
+          console.error('=== ERRO: JobId não encontrado na resposta ===')
+          console.error('Resposta completa:', JSON.stringify(result, null, 2))
+          console.error('isAsync:', isAsync)
+          console.error('Chaves disponíveis:', Object.keys(result || {}))
+          throw new Error(`Tarefa assíncrona mas não recebeu jobId na resposta. Resposta: ${JSON.stringify(result)}`)
         }
         console.log('Tarefa assíncrona detectada. Job ID:', jobId)
         
