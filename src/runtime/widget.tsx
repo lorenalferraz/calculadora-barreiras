@@ -84,62 +84,50 @@ IState
           })
         }
       }
-      this.loadFeatureLayer()
+      this.findExistingFeatureLayer()
     }
   }
 
-  // Carrega a camada de feature service
-  loadFeatureLayer = () => {
+  // Encontra a camada já existente no mapa (não adiciona camada)
+  findExistingFeatureLayer = () => {
     if (!this.state.jimuMapView) {
       return
     }
 
     this.setState({ loading: true })
 
-    loadArcGISJSAPIModules([
-      'esri/layers/FeatureLayer',
-      'esri/geometry/SpatialReference'
-    ]).then((modules) => {
-      [this.FeatureLayer, this.SpatialReference] = modules
-
-      // Cria a camada com a URL fixa
-      const layer = new this.FeatureLayer({
-        url: this.FEATURE_SERVICE_URL
-      })
-
-      // Adiciona a camada ao mapa
-      this.state.jimuMapView.view.map.add(layer)
-
-      // Aguarda a camada ser criada
-      layer.on('layerview-create', () => {
-        // Salva a visualização inicial do mapa se ainda não foi salva
-        if (!this.state.initialExtent && this.state.jimuMapView && this.state.jimuMapView.view) {
-          const currentExtent = this.state.jimuMapView.view.extent
-          if (currentExtent) {
-            this.setState({
-              featureLayer: layer,
-              loading: false,
-              initialExtent: currentExtent.clone()
-            })
-          } else {
-            this.setState({
-              featureLayer: layer,
-              loading: false
-            })
-          }
-        } else {
-          this.setState({
-            featureLayer: layer,
-            loading: false
-          })
-        }
-      })
-
-      layer.on('layerview-create-error', () => {
-        console.error('Erro ao carregar a camada')
+    try {
+      const map = this.state.jimuMapView.view?.map
+      if (!map) {
         this.setState({ loading: false })
+        return
+      }
+
+      // Procura uma FeatureLayer já adicionada com a mesma URL
+      const targetUrl = this.FEATURE_SERVICE_URL
+      const allLayers: any[] = (map.allLayers && map.allLayers.toArray) ? map.allLayers.toArray() : []
+
+      const found = allLayers.find((lyr: any) => {
+        const url = (lyr && typeof lyr.url === 'string') ? lyr.url : ''
+        return url === targetUrl
       })
-    })
+
+      if (!found) {
+        console.warn('Camada não encontrada no mapa. URL procurada:', targetUrl)
+        alert('A camada de barreiras já deve estar no mapa, mas não foi encontrada. Verifique se ela está adicionada e visível.')
+        this.setState({ loading: false })
+        return
+      }
+
+      // Salva referência da camada existente (não cria e não adiciona)
+      this.setState({
+        featureLayer: found,
+        loading: false
+      })
+    } catch (e) {
+      console.error('Erro ao localizar camada existente no mapa:', e)
+      this.setState({ loading: false })
+    }
   }
 
   // Função para filtrar e dar zoom no polígono baseado na pesquisa
